@@ -36,7 +36,7 @@ ${HDFS} ${INDIR} ${OUTDIR} ${PARTITIONS}
 
 ## execute job manager and task managers
 
-The below shows an example of a command to execute 42 job manager and task managers.
+The below shows an example of a command to execute job manager and 42 task managers.
 
 ```
 yarn-session.sh -n 42 -tm 10240 -s 12 -tmc 12
