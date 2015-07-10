@@ -62,11 +62,14 @@ SCALA_VERSION=2.10
 HDFS=hdfs://master:54321
 INDIR=/nodedata_80gb/blk_256mb
 OUTDIR=/flink_out
+USE_OPTIMIZED_TEXT=true
+USE_OBJECT_REUSE=true
 
 flink run\
 -m ${JOBMANAGER}\
 -p ${PARTITIONS}\
 -c eastcircle.terasort.FlinkTeraSort\
 target/${SCALA_VERSION}/terasort_${SCALA_VERSION}-0.0.1.jar\
-${HDFS} ${INDIR} ${OUTDIR} ${PARTITIONS}
+${HDFS} ${INDIR} ${OUTDIR} ${PARTITIONS} ${USE_OPTIMIZED_TEXT} ${USE_OBJECT_REUSE}
+
 ```
