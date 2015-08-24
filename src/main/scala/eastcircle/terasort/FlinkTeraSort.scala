@@ -51,7 +51,7 @@ object FlinkTeraSort {
     val useOptimizedText:Boolean = Try(args(4).toBoolean).getOrElse(true)
     val useObjectReuse:Boolean = Try(args(5).toBoolean).getOrElse(true)
     println("useOptimizedText : " + useOptimizedText);
-    println("useObjectReuse : " + true)
+    println("useObjectReuse : " + useObjectReuse)
     if(useObjectReuse){
       env.getConfig.enableObjectReuse()
     }
