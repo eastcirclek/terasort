@@ -43,19 +43,13 @@ object FlinkTeraSort {
     }
 
     val env = ExecutionEnvironment.getExecutionEnvironment
+    env.getConfig.enableObjectReuse()
 
     val hdfs = args(0)
     val inputPath= hdfs+args(1)
     val outputPath = hdfs+args(2)
     val partitions = args(3).toInt
-    val useOptimizedText:Boolean = Try(args(4).toBoolean).getOrElse(true)
-    val useObjectReuse:Boolean = Try(args(5).toBoolean).getOrElse(true)
-    println("useOptimizedText : " + useOptimizedText);
-    println("useObjectReuse : " + useObjectReuse)
-    if(useObjectReuse){
-      env.getConfig.enableObjectReuse()
-    }
-
+    
     val mapredConf = new JobConf()
     mapredConf.set("fs.defaultFS", hdfs)
     mapredConf.set("mapreduce.input.fileinputformat.inputdir", inputPath)
@@ -63,29 +57,15 @@ object FlinkTeraSort {
     mapredConf.setInt("mapreduce.job.reduces", partitions)
 
     val jobContext = Job.getInstance(mapredConf)
-
-    val partitionFile = new Path(outputPath, TeraInputFormat.PARTITION_FILENAME)
-    TeraInputFormat.writePartitionFile(jobContext, partitionFile)
-    val underlyingPartitioner = new TotalOrderPartitioner(mapredConf, partitionFile)
-    val teraInputFormat = new TeraInputFormat()
-    val teraOutputFormat = new TeraOutputFormat()
-    val hadoopOF = new HadoopOutputFormat[Text, Text](teraOutputFormat, jobContext);
-
-    if(useOptimizedText){
-      val partitioner = new OptimizedFlinkTeraPartitioner(underlyingPartitioner)
-
-      val inputFile = env.readHadoopFile(teraInputFormat, classOf[Text], classOf[Text], inputPath)
-      val optimizedText = inputFile.map(tp => (new OptimizedText(tp._1), tp._2))
-      val sortedPartitioned = optimizedText.partitionCustom(partitioner, 0).sortPartition(0, Order.ASCENDING)
-      sortedPartitioned.map(tp => (tp._1.getText, tp._2)).output(hadoopOF)
-      env.execute("TeraSort")
-    }else{
-      val partitioner = new FlinkTeraPartitioner(underlyingPartitioner)
-      
-      val inputFile = env.readHadoopFile(teraInputFormat, classOf[Text], classOf[Text], inputPath)
-      val sortedPartitioned = inputFile.partitionCustom(partitioner, 0).sortPartition(0, Order.ASCENDING)
-      sortedPartitioned.output(hadoopOF)
-      env.execute("TeraSort")
-    }
+    TeraInputFormat.writePartitionFile(jobContext, new Path(outputPath, TeraInputFormat.PARTITION_FILENAME))
+    val partitioner = new OptimizedFlinkTeraPartitioner(new TotalOrderPartitioner(mapredConf, partitionFile))
+    
+    env
+      .readHadoopFile(new TeraInputFormat(), classOf[Text], classOf[Text], inputPath)
+      .map(tp => (new OptimizedText(tp._1), tp._2))
+      .partitionCustom(partitioner, 0).sortPartition(0, Order.ASCENDING)
+      .map(tp => (tp._1.getText, tp._2)).output(hadoopOF)
+      .output(new HadoopOutputFormat[Text, Text](new TeraOutputFormat(), jobContext))
+    env.execute("TeraSort")
   }
 }
