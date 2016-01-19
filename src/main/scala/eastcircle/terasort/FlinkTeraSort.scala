@@ -29,10 +29,8 @@ object FlinkTeraSort {
   }
 
   def main(args: Array[String]){
-    if(args.size != 6){
-      println("Usage: FlinkTeraSort hdfs inputPath outputPath #partitions " +
-              "useOptimizedText(true or false) " +
-              "useObjectReuse(true or false)") 
+    if(args.size != 4){
+      println("Usage: FlinkTeraSort hdfs inputPath outputPath #partitions ")
       return
     }
 
