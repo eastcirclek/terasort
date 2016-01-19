@@ -15,12 +15,6 @@ import org.apache.hadoop.mapreduce.Job
 
 import scala.util.Try
 
-class FlinkTeraPartitioner(underlying:TotalOrderPartitioner) extends Partitioner[Text] {
-  def partition(key:Text, numPartitions:Int):Int = {
-    underlying.getPartition(key)
-  }
-}
-
 class OptimizedFlinkTeraPartitioner(underlying:TotalOrderPartitioner) extends Partitioner[OptimizedText] {
   def partition(key:OptimizedText, numPartitions:Int):Int = {
     underlying.getPartition(key.getText())
