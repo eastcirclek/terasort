@@ -1,7 +1,6 @@
 package eastcircle.terasort
 
 import org.apache.flink.api.scala._
-import org.apache.flink.api.common.JobExecutionResult
 
 import org.apache.flink.api.common.functions.Partitioner
 import org.apache.flink.api.common.operators.Order
@@ -12,8 +11,6 @@ import org.apache.hadoop.fs.Path
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapred.JobConf
 import org.apache.hadoop.mapreduce.Job
-
-import scala.util.Try
 
 class OptimizedFlinkTeraPartitioner(underlying:TotalOrderPartitioner) extends Partitioner[OptimizedText] {
   def partition(key:OptimizedText, numPartitions:Int):Int = {
