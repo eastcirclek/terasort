@@ -48,15 +48,16 @@ object FlinkTeraSort {
     mapredConf.set("mapreduce.output.fileoutputformat.outputdir", outputPath)
     mapredConf.setInt("mapreduce.job.reduces", partitions)
 
+    val partitionFile = new Path(outputPath, TeraInputFormat.PARTITION_FILENAME)
     val jobContext = Job.getInstance(mapredConf)
-    TeraInputFormat.writePartitionFile(jobContext, new Path(outputPath, TeraInputFormat.PARTITION_FILENAME))
+    TeraInputFormat.writePartitionFile(jobContext, partitionFile)
     val partitioner = new OptimizedFlinkTeraPartitioner(new TotalOrderPartitioner(mapredConf, partitionFile))
     
     env
       .readHadoopFile(new TeraInputFormat(), classOf[Text], classOf[Text], inputPath)
       .map(tp => (new OptimizedText(tp._1), tp._2))
       .partitionCustom(partitioner, 0).sortPartition(0, Order.ASCENDING)
-      .map(tp => (tp._1.getText, tp._2)).output(hadoopOF)
+      .map(tp => (tp._1.getText, tp._2))
       .output(new HadoopOutputFormat[Text, Text](new TeraOutputFormat(), jobContext))
     env.execute("TeraSort")
   }
